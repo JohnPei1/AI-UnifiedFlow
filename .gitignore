@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments and local configuration
+.venv/
+venv/
+.env
+/build
+
+# Runtime data
+data/*.db
+data/*.db-shm
+data/*.db-wal
+config/mappings/generated/*.json
+
+# Editor and OS files
+.DS_Store
+.idea/
+.vscode/
+
