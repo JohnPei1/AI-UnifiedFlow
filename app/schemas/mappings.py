@@ -9,7 +9,6 @@ TargetFieldName = Annotated[
     str,
     StringConstraints(strip_whitespace=True, min_length=1),
 ]
-SupportedSource = Literal["openai", "aws"]
 CastType = Literal["string", "integer", "float", "boolean"]
 CreatedBy = Literal["user", "ai"]
 
@@ -86,10 +85,17 @@ class AIProposal(StrictModel):
 
 class RuntimeMapping(StrictModel):
     case_id: NonBlankString
-    source: SupportedSource
+    source: NonBlankString
     schema_fingerprint: NonBlankString
     version: Annotated[int, Field(ge=1)] = 1
     created_by: CreatedBy
     fields: MappingFields
 
     _validate_fields = field_validator("fields")(_validate_operation_pipelines)
+
+    @field_validator("source", mode="before")
+    @classmethod
+    def normalize_source(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip().lower()
+        return value

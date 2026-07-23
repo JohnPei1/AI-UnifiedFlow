@@ -1,0 +1,78 @@
+{
+  "type": "object",
+  "required": [
+    "event_id",
+    "case_id",
+    "source",
+    "category",
+    "usage_type"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string"
+    },
+    "case_id": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": ["ai", "cloud"]
+    },
+    "service": {
+      "type": ["string", "null"]
+    },
+    "resource": {
+      "type": ["string", "null"]
+    },
+    "account_id": {
+      "type": ["string", "null"]
+    },
+    "project_id": {
+      "type": ["string", "null"]
+    },
+    "region": {
+      "type": ["string", "null"]
+    },
+    "usage_type": {
+      "type": "string"
+    },
+    "input_units": {
+      "type": ["number", "null"],
+      "minimum": 0
+    },
+    "output_units": {
+      "type": ["number", "null"],
+      "minimum": 0
+    },
+    "quantity": {
+      "type": ["number", "null"],
+      "minimum": 0
+    },
+    "unit": {
+      "type": "string"
+    },
+    "cost": {
+      "type": ["number", "null"],
+      "minimum": 0
+    },
+    "currency": {
+      "type": ["string", "null"]
+    },
+    "occurred_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "usage_start": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "usage_end": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}

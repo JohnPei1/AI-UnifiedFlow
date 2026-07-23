@@ -16,7 +16,6 @@ NonBlankString = Annotated[
     str,
     StringConstraints(strip_whitespace=True, min_length=1),
 ]
-SupportedSource = Literal["openai", "aws"]
 Payload = dict[str, JsonValue]
 
 
@@ -29,7 +28,7 @@ class StrictModel(BaseModel):
 
 
 class SourcePayloadModel(StrictModel):
-    source: SupportedSource
+    source: NonBlankString
     payload: Payload
 
     @field_validator("source", mode="before")
