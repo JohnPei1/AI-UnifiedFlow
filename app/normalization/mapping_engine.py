@@ -9,6 +9,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 from jsonschema.exceptions import SchemaError
 from pydantic import JsonValue
 
+from app.config import NORMALIZED_EVENT_SCHEMA_PATH
 from app.schemas.mappings import RuntimeMapping
 from app.schemas.operations import (
     CastOperation,
@@ -19,10 +20,6 @@ from app.schemas.operations import (
 from app.schemas.requests import InternalUsageEvent
 
 NormalizedEvent: TypeAlias = dict[str, JsonValue]
-
-DEFAULT_SCHEMA_PATH = (
-    Path(__file__).resolve().parents[2] / "config" / "normalized_event_schema.json"
-)
 PROTECTED_FIELDS = frozenset({"event_id", "case_id", "source"})
 
 
@@ -56,7 +53,7 @@ class MappingEngine:
     def __init__(
         self,
         schema: Mapping[str, object] | None = None,
-        schema_path: str | Path = DEFAULT_SCHEMA_PATH,
+        schema_path: str | Path = NORMALIZED_EVENT_SCHEMA_PATH,
     ) -> None:
         if schema is None:
             schema = self._load_schema(Path(schema_path))
