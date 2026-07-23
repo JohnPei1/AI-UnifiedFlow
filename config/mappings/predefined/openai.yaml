@@ -1,0 +1,62 @@
+source: openai
+
+mappings:
+  - name: responses_text_usage_v1
+    version: 1
+
+    schema_signature:
+      - completed_at:number
+      - created_at:number
+      - error:null
+      - id:string
+      - incomplete_details:null
+      - input:array
+      - instructions:null
+      - max_output_tokens:null
+      - metadata:object
+      - model:string
+      - object:string
+      - output:array
+      - previous_response_id:null
+      - status:string
+      - store:boolean
+      - temperature:number
+      - text:object
+      - text.format:object
+      - text.format.type:string
+      - tool_choice:string
+      - tools:array
+      - top_p:number
+      - truncation:string
+      - usage:object
+      - usage.input_tokens:integer
+      - usage.input_tokens_details:object
+      - usage.input_tokens_details.cached_tokens:integer
+      - usage.output_tokens:integer
+      - usage.output_tokens_details:object
+      - usage.output_tokens_details.reasoning_tokens:integer
+      - usage.total_tokens:integer
+      - user:null
+
+    static_fields:
+      category: ai
+      service: responses
+      usage_type: tokens
+      unit: tokens
+
+    fields:
+      resource:
+        - operation: copy
+          from: payload.model
+
+      input_units:
+        - operation: copy
+          from: payload.usage.input_tokens
+        - operation: cast
+          to: integer
+
+      output_units:
+        - operation: copy
+          from: payload.usage.output_tokens
+        - operation: cast
+          to: integer

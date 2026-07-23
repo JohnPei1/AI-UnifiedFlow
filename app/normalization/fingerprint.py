@@ -57,9 +57,27 @@ def calculate_schema_fingerprint(payload: Mapping[str, object]) -> str:
     if not isinstance(payload, Mapping):
         raise TypeError("payload must be an object")
 
-    schema_paths = get_schema_paths(payload)
+    return calculate_schema_fingerprint_from_signature(get_schema_paths(payload))
+
+
+def calculate_schema_fingerprint_from_signature(
+    schema_signature: Sequence[str],
+) -> str:
+    """Calculate a fingerprint from typed JSON field paths."""
+
+    if isinstance(schema_signature, (str, bytes, bytearray)):
+        raise TypeError("schema signature must be a sequence of strings")
+    if any(not isinstance(entry, str) for entry in schema_signature):
+        raise TypeError("schema signature entries must be strings")
+
+    ordered_signature = tuple(
+        sorted(
+            schema_signature,
+            key=lambda entry: tuple(entry.rsplit(":", 1)[0].split(".")),
+        )
+    )
     encoded = json.dumps(
-        schema_paths,
+        ordered_signature,
         ensure_ascii=False,
         separators=(",", ":"),
     ).encode("utf-8")
