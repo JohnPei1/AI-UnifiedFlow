@@ -1,5 +1,16 @@
-from typing import Annotated, Literal
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
+from typing import Annotated, Literal, Self
+
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    JsonValue,
+    StringConstraints,
+    field_validator,
+    model_validator,
+)
+
+from app.schemas.operations import CopyOperation, MappingOperation
 
 NonBlankString = Annotated[
     str,
@@ -9,7 +20,6 @@ TargetFieldName = Annotated[
     str,
     StringConstraints(strip_whitespace=True, min_length=1),
 ]
-CastType = Literal["string", "integer", "float", "boolean"]
 CreatedBy = Literal["user", "ai"]
 
 
@@ -22,50 +32,9 @@ class StrictModel(BaseModel):
     )
 
 
-class CopyOperation(StrictModel):
-    operation: Literal["copy"]
-    source_path: NonBlankString = Field(alias="from")
-
-    @field_validator("source_path")
-    @classmethod
-    def validate_source_path(cls, value: str) -> str:
-        if value == "source":
-            return value
-
-        if not value.startswith("payload."):
-            raise ValueError("copy path must be 'source' or begin with 'payload.'")
-
-        segments = value.split(".")
-        if any(not segment for segment in segments):
-            raise ValueError("copy path cannot contain empty segments")
-
-        return value
-
-
-class CastOperation(StrictModel):
-    operation: Literal["cast"]
-    to: CastType
-
-
-class MultiplyOperation(StrictModel):
-    operation: Literal["multiply"]
-    by: int | float
-
-    @field_validator("by")
-    @classmethod
-    def reject_boolean_multiplier(cls, value: int | float) -> int | float:
-        # Python treats booleans as integers, but they are not valid multipliers here.
-        if isinstance(value, bool):
-            raise ValueError("multiply factor must be numeric, not boolean")
-        return value
-
-
-MappingOperation = Annotated[
-    CopyOperation | CastOperation | MultiplyOperation,
-    Field(discriminator="operation"),
-]
 OperationPipeline = Annotated[list[MappingOperation], Field(min_length=1)]
 MappingFields = Annotated[dict[TargetFieldName, OperationPipeline], Field(min_length=1)]
+StaticFields = dict[TargetFieldName, JsonValue]
 
 
 def _validate_operation_pipelines(fields: MappingFields) -> MappingFields:
@@ -89,6 +58,7 @@ class RuntimeMapping(StrictModel):
     schema_fingerprint: NonBlankString
     version: Annotated[int, Field(ge=1)] = 1
     created_by: CreatedBy
+    static_fields: StaticFields = Field(default_factory=dict)
     fields: MappingFields
 
     _validate_fields = field_validator("fields")(_validate_operation_pipelines)
@@ -99,3 +69,13 @@ class RuntimeMapping(StrictModel):
         if isinstance(value, str):
             return value.strip().lower()
         return value
+
+    @model_validator(mode="after")
+    def reject_duplicate_targets(self) -> Self:
+        duplicate_targets = self.static_fields.keys() & self.fields.keys()
+        if duplicate_targets:
+            targets = ", ".join(sorted(duplicate_targets))
+            raise ValueError(
+                f"fields and static_fields contain the same target: {targets}"
+            )
+        return self
