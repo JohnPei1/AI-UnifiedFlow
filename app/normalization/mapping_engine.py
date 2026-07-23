@@ -10,6 +10,7 @@ from jsonschema.exceptions import SchemaError
 from pydantic import JsonValue
 
 from app.config import NORMALIZED_EVENT_SCHEMA_PATH
+from app.normalization.casting import CastValueError, cast_value
 from app.schemas.mappings import RuntimeMapping
 from app.schemas.operations import (
     CastOperation,
@@ -164,7 +165,10 @@ class MappingEngine:
         if isinstance(operation, CopyOperation):
             return self._resolve_path(operation.source_path, event)
         if isinstance(operation, CastOperation):
-            return self._cast(current_value, operation.to)
+            try:
+                return cast_value(current_value, operation.to)
+            except CastValueError as error:
+                raise MappingOperationError(str(error)) from error
         if isinstance(operation, MultiplyOperation):
             return self._multiply(current_value, operation.by)
 
@@ -184,50 +188,6 @@ class MappingEngine:
             current = current[segment]
 
         return current
-
-    @staticmethod
-    def _cast(value: JsonValue | None, target_type: str) -> JsonValue:
-        if value is None or isinstance(value, (dict, list)):
-            raise MappingOperationError(
-                f"cannot cast {type(value).__name__} to {target_type}"
-            )
-
-        try:
-            if target_type == "string":
-                if isinstance(value, bool):
-                    return "true" if value else "false"
-                return str(value)
-
-            if target_type == "integer":
-                if isinstance(value, bool):
-                    raise ValueError
-                if isinstance(value, float) and not value.is_integer():
-                    raise ValueError
-                return int(value)
-
-            if target_type == "float":
-                if isinstance(value, bool):
-                    raise ValueError
-                return float(value)
-
-            if target_type == "boolean":
-                if isinstance(value, bool):
-                    return value
-                if isinstance(value, str):
-                    normalized = value.strip().lower()
-                    if normalized == "true":
-                        return True
-                    if normalized == "false":
-                        return False
-                if isinstance(value, (int, float)) and value in (0, 1):
-                    return bool(value)
-                raise ValueError
-        except (TypeError, ValueError, OverflowError) as error:
-            raise MappingOperationError(
-                f"cannot cast {value!r} to {target_type}"
-            ) from error
-
-        raise MappingOperationError(f"unsupported cast type: {target_type}")
 
     @staticmethod
     def _multiply(
