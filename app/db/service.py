@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
 
 from pydantic import JsonValue
-from sqlalchemy.dialects.sqlite import insert
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.db.database import SessionFactory
@@ -138,5 +138,4 @@ class NormalizedEventRepository:
                 f"normalized field '{field}' must include a time zone"
             )
 
-        # SQLite stores naive timestamps, so indexed values use UTC consistently.
-        return parsed.astimezone(UTC).replace(tzinfo=None)
+        return parsed.astimezone(UTC)

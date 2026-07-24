@@ -145,11 +145,11 @@ def health(
     producer: Producer = Depends(get_kafka_producer),
     database_engine: Engine = Depends(get_database_engine),
 ) -> HealthResponse:
-    """Report Kafka and SQLite connectivity."""
+    """Report Kafka and PostgreSQL connectivity."""
 
     kafka_healthy = is_kafka_healthy(producer)
-    sqlite_healthy = is_database_healthy(database_engine)
+    postgresql_healthy = is_database_healthy(database_engine)
     return HealthResponse(
         kafka="healthy" if kafka_healthy else "unhealthy",
-        sqlite="healthy" if sqlite_healthy else "unhealthy",
+        postgresql="healthy" if postgresql_healthy else "unhealthy",
     )

@@ -1,6 +1,9 @@
 {
   "database": {
-    "busy_timeout_ms": 5000
+    "host": "localhost",
+    "port": 5432,
+    "name": "unifiedflow",
+    "user": "unifiedflow"
   },
   "kafka": {
     "bootstrap_servers": "localhost:9092",

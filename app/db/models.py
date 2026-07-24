@@ -4,7 +4,8 @@ from datetime import datetime
 from decimal import Decimal
 
 from pydantic import JsonValue
-from sqlalchemy import DateTime, Index, JSON, Numeric, String, func
+from sqlalchemy import DateTime, Index, Numeric, String, func
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -51,14 +52,18 @@ class NormalizedEventRecord(Base):
     unit: Mapped[str | None] = mapped_column(String)
     cost: Mapped[Decimal | None] = mapped_column(Numeric(24, 12))
     currency: Mapped[str | None] = mapped_column(String)
-    usage_start: Mapped[datetime | None] = mapped_column(DateTime)
-    usage_end: Mapped[datetime | None] = mapped_column(DateTime)
+    usage_start: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True)
+    )
+    usage_end: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True)
+    )
     normalized_payload: Mapped[dict[str, JsonValue]] = mapped_column(
-        JSON,
+        JSONB,
         nullable=False,
     )
     created_at: Mapped[datetime] = mapped_column(
-        DateTime,
+        DateTime(timezone=True),
         nullable=False,
-        server_default=func.current_timestamp(),
+        server_default=func.now(),
     )

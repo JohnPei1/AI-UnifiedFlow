@@ -82,4 +82,4 @@ class MappingResolveResponse(StrictModel):
 
 class HealthResponse(StrictModel):
     kafka: Literal["healthy", "unhealthy"]
-    sqlite: Literal["healthy", "unhealthy"]
+    postgresql: Literal["healthy", "unhealthy"]

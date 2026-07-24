@@ -1,1 +1,1 @@
-"""SQLite storage for normalized usage events."""
+"""PostgreSQL storage for normalized usage events."""
