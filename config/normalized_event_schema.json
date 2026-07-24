@@ -61,10 +61,6 @@
     "currency": {
       "type": ["string", "null"]
     },
-    "occurred_at": {
-      "type": ["string", "null"],
-      "format": "date-time"
-    },
     "usage_start": {
       "type": ["string", "null"],
       "format": "date-time"

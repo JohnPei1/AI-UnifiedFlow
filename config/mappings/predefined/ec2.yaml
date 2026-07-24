@@ -42,6 +42,6 @@ mappings:
         - operation: copy
           from: payload.currency
 
-      occurred_at:
+      usage_start:
         - operation: copy
           from: payload.usage_started_at

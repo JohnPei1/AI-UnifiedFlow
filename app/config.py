@@ -4,6 +4,9 @@ from pathlib import Path
 
 PROJECT_DIRECTORY = Path(__file__).resolve().parent.parent
 CONFIG_DIRECTORY = PROJECT_DIRECTORY / "config"
+DATA_DIRECTORY = PROJECT_DIRECTORY / "data"
+DATABASE_PATH = DATA_DIRECTORY / "usage.db"
+SQLITE_BUSY_TIMEOUT_MS = 5000
 NORMALIZED_EVENT_SCHEMA_PATH = CONFIG_DIRECTORY / "normalized_event_schema.json"
 AI_CONFIG_PATH = CONFIG_DIRECTORY / "ai.json"
 SOURCES_CONFIG_PATH = CONFIG_DIRECTORY / "sources.json"
