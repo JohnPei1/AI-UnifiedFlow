@@ -1,5 +1,6 @@
 """Application paths and configuration locations."""
 
+import os
 from pathlib import Path
 
 PROJECT_DIRECTORY = Path(__file__).resolve().parent.parent
@@ -13,3 +14,9 @@ SOURCES_CONFIG_PATH = CONFIG_DIRECTORY / "sources.json"
 MAPPINGS_DIRECTORY = CONFIG_DIRECTORY / "mappings"
 PREDEFINED_MAPPINGS_DIRECTORY = MAPPINGS_DIRECTORY / "predefined"
 GENERATED_MAPPINGS_DIRECTORY = MAPPINGS_DIRECTORY / "generated"
+KAFKA_BOOTSTRAP_SERVERS = os.getenv(
+    "KAFKA_BOOTSTRAP_SERVERS",
+    "localhost:9092",
+)
+KAFKA_DELIVERY_TIMEOUT_MS = 10_000
+KAFKA_HEALTH_TIMEOUT_SECONDS = 5.0
