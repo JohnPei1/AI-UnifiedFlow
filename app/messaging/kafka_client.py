@@ -50,7 +50,6 @@ def create_kafka_producer() -> Producer:
 
 
 def create_kafka_consumer(
-    *,
     group_id: str,
     topics: list[str],
 ) -> Consumer:
@@ -82,7 +81,6 @@ def create_kafka_consumer(
 
 def publish_event(
     producer: Producer,
-    *,
     topic: str,
     event: BaseModel,
     key: str | None = None,
