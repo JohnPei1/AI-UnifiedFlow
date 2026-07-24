@@ -53,7 +53,7 @@ def create_kafka_consumer(
     group_id: str,
     topics: list[str],
 ) -> Consumer:
-    """Create a manually committed consumer subscribed to the given topics."""
+    """Create a consumer (manual commit) subscribed to the given topics."""
 
     if not isinstance(group_id, str) or not group_id.strip():
         raise KafkaClientError("Kafka consumer group ID must not be blank")
