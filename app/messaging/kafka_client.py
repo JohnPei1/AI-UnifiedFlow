@@ -156,6 +156,14 @@ def decode_message(
         raise KafkaMessageError(f"Kafka message is invalid: {error}") from error
 
 
+def is_unknown_topic_message(message: Message) -> bool:
+    error = message.error()
+    return (
+        error is not None
+        and error.code() == KafkaError.UNKNOWN_TOPIC_OR_PART
+    )
+
+
 def commit_message(
     consumer: Consumer,
     message: Message,

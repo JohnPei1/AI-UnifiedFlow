@@ -119,6 +119,18 @@ def test_decode_rejects_invalid_messages(
         kafka_client.decode_message(message, EventAcceptedResponse)
 
 
+def test_unknown_topic_message_is_identified() -> None:
+    error = Mock()
+    error.code.return_value = kafka_client.KafkaError.UNKNOWN_TOPIC_OR_PART
+    message = FakeMessage(error=error)
+
+    assert kafka_client.is_unknown_topic_message(message) is True
+
+
+def test_regular_message_is_not_an_unknown_topic() -> None:
+    assert kafka_client.is_unknown_topic_message(FakeMessage()) is False
+
+
 def test_commit_is_synchronous() -> None:
     consumer = Mock()
     consumer.commit.return_value = []

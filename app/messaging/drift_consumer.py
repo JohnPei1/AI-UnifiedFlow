@@ -14,6 +14,7 @@ from app.messaging.kafka_client import (
     create_kafka_consumer,
     create_kafka_producer,
     decode_message,
+    is_unknown_topic_message,
     publish_event,
 )
 from app.normalization.mapping_engine import MappingEngine, MappingEngineError
@@ -102,15 +103,23 @@ def run() -> None:
 
         while True:
             message = consumer.poll(1.0)
-            if message is not None:
-                process_drift_message(
-                    consumer,
-                    producer,
-                    mapping_store,
-                    mapping_engine,
-                    ai_client,
-                    message,
-                )
+            if message is None:
+                continue
+
+            # The raw-event consumer creates this topic on the first drift.
+            if is_unknown_topic_message(message):
+                continue
+
+            process_drift_message(
+                consumer,
+                producer,
+                mapping_store,
+                mapping_engine,
+                ai_client,
+                message,
+            )
+    except KeyboardInterrupt:
+        pass
     finally:
         if consumer is not None:
             consumer.close()
