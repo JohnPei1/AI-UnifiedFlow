@@ -1,0 +1,33 @@
+{
+  "database": {
+    "busy_timeout_ms": 5000
+  },
+  "kafka": {
+    "bootstrap_servers": "localhost:9092",
+    "delivery_timeout_ms": 10000,
+    "health_timeout_seconds": 5.0
+  },
+  "ai": {
+    "base_url": "https://openrouter.ai/api/v1",
+    "model": "",
+    "temperature": 0.0,
+    "timeout_seconds": 30,
+    "max_attempts": 3,
+    "max_payload_bytes": 100000,
+    "max_payload_depth": 10
+  },
+  "sources": {
+    "openai": {
+      "ai_static_fields": {
+        "category": "ai",
+        "usage_type": "tokens",
+        "unit": "tokens"
+      }
+    },
+    "aws": {
+      "ai_static_fields": {
+        "category": "cloud"
+      }
+    }
+  }
+}
