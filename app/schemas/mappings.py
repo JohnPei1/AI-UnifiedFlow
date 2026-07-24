@@ -60,6 +60,11 @@ class AIProposal(StrictModel):
     _validate_fields = field_validator("fields")(_validate_operation_pipelines)
 
 
+class AIReview(StrictModel):
+    prompt_injection_detected: bool
+    data_leak_detected: bool
+
+
 class PredefinedMapping(StrictModel):
     name: NonBlankString
     version: Annotated[int, Field(ge=1)] = 1
