@@ -126,6 +126,11 @@ def publish_event(
             f"Kafka delivery timed out with {remaining} message(s) pending"
         )
 
+    if not acknowledged:
+        raise KafkaPublishError(
+            "Kafka delivery acknowledgement was not received"
+        )
+
     if delivery_error is not None:
         raise KafkaPublishError(
             f"Kafka rejected the event: {delivery_error}"

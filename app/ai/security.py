@@ -82,13 +82,16 @@ def validate_ai_review(response_text: str | None) -> None:
 
 
 def validate_keyword_blacklist(
-    proposal: AIProposal,
+    content: Mapping[str, JsonValue] | AIProposal,
     keyword_blacklist: list[str],
 ) -> None:
-    """Reject configured keywords in an AI-generated proposal."""
+    """Reject configured keywords in payloads and mapping proposals."""
 
-    content = proposal.model_dump_json(by_alias=True)
-    _reject_blacklisted_content(content, keyword_blacklist)
+    if isinstance(content, AIProposal):
+        serialized = content.model_dump_json(by_alias=True)
+    else:
+        serialized = json.dumps(content, ensure_ascii=False)
+    _reject_blacklisted_content(serialized, keyword_blacklist)
 
 
 def _reject_blacklisted_content(
