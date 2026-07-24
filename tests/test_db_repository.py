@@ -7,7 +7,7 @@ import pytest
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.db.service import (
+from app.db.repository import (
     NormalizedEventRepository,
     NormalizedEventStorageError,
 )
@@ -18,10 +18,13 @@ class FakeSession:
         self,
         rowcount: int = 1,
         error: Exception | None = None,
+        records: list[object] | None = None,
     ) -> None:
         self.rowcount = rowcount
         self.error = error
+        self.records = records or []
         self.params: dict[str, object] | None = None
+        self.scalar_statement: object | None = None
 
     def execute(self, statement: object):
         if self.error is not None:
@@ -29,6 +32,12 @@ class FakeSession:
         compiled = statement.compile(dialect=postgresql.dialect())
         self.params = compiled.params
         return type("Result", (), {"rowcount": self.rowcount})()
+
+    def scalars(self, statement: object) -> list[object]:
+        if self.error is not None:
+            raise self.error
+        self.scalar_statement = statement
+        return self.records
 
 
 class FakeSessionFactory:
@@ -63,12 +72,19 @@ def normalized_event() -> dict[str, object]:
     }
 
 
+def raw_payload() -> dict[str, object]:
+    return {
+        "resource_id": "i-123",
+        "usage_amount": "3.5",
+    }
+
+
 def test_save_converts_values_for_postgresql() -> None:
     session = FakeSession()
     repository = NormalizedEventRepository(FakeSessionFactory(session))
     event = normalized_event()
 
-    assert repository.save(event) is True
+    assert repository.save(event, raw_payload()) is True
 
     assert session.params["quantity"] == Decimal("3.5")
     assert session.params["cost"] == Decimal("0.42")
@@ -79,7 +95,7 @@ def test_save_converts_values_for_postgresql() -> None:
         14,
         tzinfo=UTC,
     )
-    assert session.params["normalized_payload"] == event
+    assert session.params["raw_payload"] == raw_payload()
 
 
 def test_duplicate_event_returns_false() -> None:
@@ -87,7 +103,30 @@ def test_duplicate_event_returns_false() -> None:
         FakeSessionFactory(FakeSession(rowcount=0))
     )
 
-    assert repository.save(normalized_event()) is False
+    assert repository.save(normalized_event(), raw_payload()) is False
+
+
+def test_get_all_returns_records_in_id_order() -> None:
+    records = [object(), object()]
+    session = FakeSession(records=records)
+    repository = NormalizedEventRepository(FakeSessionFactory(session))
+
+    assert repository.get_all() == records
+    assert "ORDER BY normalized_events.id" in str(session.scalar_statement)
+
+
+def test_get_all_wraps_database_errors() -> None:
+    repository = NormalizedEventRepository(
+        FakeSessionFactory(
+            FakeSession(error=SQLAlchemyError("database unavailable"))
+        )
+    )
+
+    with pytest.raises(
+        NormalizedEventStorageError,
+        match="could not load",
+    ):
+        repository.get_all()
 
 
 @pytest.mark.parametrize(
@@ -102,7 +141,7 @@ def test_required_strings_must_be_present(field: str) -> None:
     )
 
     with pytest.raises(NormalizedEventStorageError, match=field):
-        repository.save(event)
+        repository.save(event, raw_payload())
 
 
 def test_optional_string_rejects_non_string() -> None:
@@ -113,7 +152,7 @@ def test_optional_string_rejects_non_string() -> None:
     )
 
     with pytest.raises(NormalizedEventStorageError, match="region"):
-        repository.save(event)
+        repository.save(event, raw_payload())
 
 
 @pytest.mark.parametrize("value", [True, "3.5", float("inf"), float("nan")])
@@ -125,7 +164,7 @@ def test_numeric_fields_require_finite_numbers(value: object) -> None:
     )
 
     with pytest.raises(NormalizedEventStorageError, match="quantity"):
-        repository.save(event)
+        repository.save(event, raw_payload())
 
 
 @pytest.mark.parametrize(
@@ -142,7 +181,7 @@ def test_datetime_fields_require_valid_timezone(
     )
 
     with pytest.raises(NormalizedEventStorageError, match="usage_start"):
-        repository.save(event)
+        repository.save(event, raw_payload())
 
 
 def test_database_error_is_wrapped() -> None:
@@ -156,4 +195,4 @@ def test_database_error_is_wrapped() -> None:
         NormalizedEventStorageError,
         match="could not store",
     ):
-        repository.save(normalized_event())
+        repository.save(normalized_event(), raw_payload())

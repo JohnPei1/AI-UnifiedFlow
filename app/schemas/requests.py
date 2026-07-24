@@ -1,3 +1,5 @@
+from datetime import datetime
+from decimal import Decimal
 from typing import Annotated, Literal, Self
 
 from pydantic import (
@@ -83,3 +85,29 @@ class MappingResolveResponse(StrictModel):
 class HealthResponse(StrictModel):
     kafka: Literal["healthy", "unhealthy"]
     postgresql: Literal["healthy", "unhealthy"]
+
+
+class StoredNormalizedEvent(StrictModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    event_id: NonBlankString
+    case_id: NonBlankString
+    source: NonBlankString
+    category: NonBlankString
+    service: str | None
+    resource: str | None
+    account_id: str | None
+    project_id: str | None
+    region: str | None
+    usage_type: NonBlankString
+    input_units: Decimal | None
+    output_units: Decimal | None
+    quantity: Decimal | None
+    unit: str | None
+    cost: Decimal | None
+    currency: str | None
+    usage_start: datetime | None
+    usage_end: datetime | None
+    raw_payload: Payload
+    created_at: datetime

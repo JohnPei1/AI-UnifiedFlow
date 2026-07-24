@@ -58,7 +58,7 @@ class NormalizedEventRecord(Base):
     usage_end: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True)
     )
-    normalized_payload: Mapped[dict[str, JsonValue]] = mapped_column(
+    raw_payload: Mapped[dict[str, JsonValue]] = mapped_column(
         JSONB,
         nullable=False,
     )

@@ -7,7 +7,7 @@ from app.db.database import (
     create_session_factory,
     initialize_database,
 )
-from app.db.service import NormalizedEventRepository
+from app.db.repository import NormalizedEventRepository
 from app.messaging.kafka_client import (
     FAILED_EVENTS_TOPIC,
     RAW_EVENTS_TOPIC,
@@ -59,7 +59,7 @@ def process_raw_message(
         commit_message(consumer, message)
         return
 
-    repository.save(normalized_event)
+    repository.save(normalized_event, event.payload)
     commit_message(consumer, message)
 
 

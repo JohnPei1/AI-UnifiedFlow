@@ -7,7 +7,12 @@ from fastapi import FastAPI
 
 from app.api.routes import router
 from app.config import SUPPORTED_SOURCES
-from app.db.database import create_database_engine, initialize_database
+from app.db.database import (
+    create_database_engine,
+    create_session_factory,
+    initialize_database,
+)
+from app.db.repository import NormalizedEventRepository
 from app.messaging.kafka_client import create_kafka_producer
 from app.normalization.mapping_store import MappingStore
 
@@ -26,6 +31,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         kafka_producer = create_kafka_producer()
 
         app.state.database_engine = database_engine
+        app.state.event_repository = NormalizedEventRepository(
+            create_session_factory(database_engine)
+        )
         app.state.mapping_store = mapping_store
         app.state.kafka_producer = kafka_producer
         app.state.supported_sources = SUPPORTED_SOURCES

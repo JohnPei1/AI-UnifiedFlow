@@ -1,7 +1,7 @@
 {
   "database": {
     "host": "localhost",
-    "port": 5432,
+    "port": 5433,
     "name": "unifiedflow",
     "user": "unifiedflow"
   },
@@ -12,8 +12,8 @@
   },
   "ai": {
     "base_url": "https://openrouter.ai/api/v1",
-    "model": "",
-    "review_model": "",
+    "model": "openai/gpt-oss-20b:free",
+    "review_model": "google/gemma-4-26b-a4b-it:free",
     "temperature": 0.0,
     "timeout_seconds": 30,
     "max_attempts": 3,

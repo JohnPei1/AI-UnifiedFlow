@@ -3,7 +3,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from app.db.service import NormalizedEventStorageError
+from app.db.repository import NormalizedEventStorageError
 from app.messaging import raw_event_consumer
 from app.messaging.kafka_client import KafkaPublishError
 from app.normalization.mapping_engine import MappingEngineError
@@ -29,7 +29,9 @@ def test_existing_mapping_stores_normalized_event_then_commits(
     mapping_engine = Mock()
     mapping_engine.apply_mapping.return_value = normalized
     repository = Mock()
-    repository.save.side_effect = lambda event: calls.append("save") or True
+    repository.save.side_effect = (
+        lambda event, payload: calls.append("save") or True
+    )
     commit = Mock(side_effect=lambda consumer, message: calls.append("commit"))
     monkeypatch.setattr(
         raw_event_consumer,
@@ -48,7 +50,7 @@ def test_existing_mapping_stores_normalized_event_then_commits(
     )
 
     assert calls == ["save", "commit"]
-    repository.save.assert_called_once_with(normalized)
+    repository.save.assert_called_once_with(normalized, usage_event.payload)
 
 
 def test_missing_mapping_publishes_schema_drift_then_commits(

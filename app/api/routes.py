@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import Engine
 
 from app.db.database import is_database_healthy
+from app.db.repository import NormalizedEventRepository
 from app.messaging.kafka_client import (
     RAW_EVENTS_TOPIC,
     KafkaClientError,
@@ -24,6 +25,7 @@ from app.schemas.requests import (
     InternalUsageEvent,
     MappingResolveRequest,
     MappingResolveResponse,
+    StoredNormalizedEvent,
     UsageEventRequest,
 )
 
@@ -40,6 +42,10 @@ def get_mapping_store(request: Request) -> MappingStore:
 
 def get_database_engine(request: Request) -> Engine:
     return request.app.state.database_engine
+
+
+def get_event_repository(request: Request) -> NormalizedEventRepository:
+    return request.app.state.event_repository
 
 
 def get_supported_sources(request: Request) -> frozenset[str]:
@@ -104,6 +110,19 @@ def create_event(
         event_id=event_id,
         case_id=case_id,
     )
+
+
+@router.get(
+    "/test/get-all-events",
+    response_model=list[StoredNormalizedEvent],
+)
+def get_test_events(
+    repository: NormalizedEventRepository = Depends(get_event_repository),
+) -> list[StoredNormalizedEvent]:
+    return [
+        StoredNormalizedEvent.model_validate(record)
+        for record in repository.get_all()
+    ]
 
 
 @router.post(

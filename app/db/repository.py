@@ -1,10 +1,11 @@
-"""Store normalized usage events."""
+"""Store and retrieve normalized usage events."""
 
 from collections.abc import Mapping
 from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
 
 from pydantic import JsonValue
+from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -22,30 +23,34 @@ class NormalizedEventRepository:
     def __init__(self, session_factory: SessionFactory) -> None:
         self._session_factory = session_factory
 
-    def save(self, normalized_event: Mapping[str, JsonValue]) -> bool:
+    def save(
+        self,
+        normalized_event: Mapping[str, JsonValue],
+        raw_payload: Mapping[str, JsonValue],
+    ) -> bool:
         """Store an event, returning false when it was already processed."""
 
-        payload = dict(normalized_event)
+        normalized = dict(normalized_event)
         values = {
-            "event_id": self._required_string(payload, "event_id"),
-            "case_id": self._required_string(payload, "case_id"),
-            "source": self._required_string(payload, "source"),
-            "category": self._required_string(payload, "category"),
-            "service": self._optional_string(payload, "service"),
-            "resource": self._optional_string(payload, "resource"),
-            "account_id": self._optional_string(payload, "account_id"),
-            "project_id": self._optional_string(payload, "project_id"),
-            "region": self._optional_string(payload, "region"),
-            "usage_type": self._required_string(payload, "usage_type"),
-            "input_units": self._optional_decimal(payload, "input_units"),
-            "output_units": self._optional_decimal(payload, "output_units"),
-            "quantity": self._optional_decimal(payload, "quantity"),
-            "unit": self._optional_string(payload, "unit"),
-            "cost": self._optional_decimal(payload, "cost"),
-            "currency": self._optional_string(payload, "currency"),
-            "usage_start": self._optional_datetime(payload, "usage_start"),
-            "usage_end": self._optional_datetime(payload, "usage_end"),
-            "normalized_payload": payload,
+            "event_id": self._required_string(normalized, "event_id"),
+            "case_id": self._required_string(normalized, "case_id"),
+            "source": self._required_string(normalized, "source"),
+            "category": self._required_string(normalized, "category"),
+            "service": self._optional_string(normalized, "service"),
+            "resource": self._optional_string(normalized, "resource"),
+            "account_id": self._optional_string(normalized, "account_id"),
+            "project_id": self._optional_string(normalized, "project_id"),
+            "region": self._optional_string(normalized, "region"),
+            "usage_type": self._required_string(normalized, "usage_type"),
+            "input_units": self._optional_decimal(normalized, "input_units"),
+            "output_units": self._optional_decimal(normalized, "output_units"),
+            "quantity": self._optional_decimal(normalized, "quantity"),
+            "unit": self._optional_string(normalized, "unit"),
+            "cost": self._optional_decimal(normalized, "cost"),
+            "currency": self._optional_string(normalized, "currency"),
+            "usage_start": self._optional_datetime(normalized, "usage_start"),
+            "usage_end": self._optional_datetime(normalized, "usage_end"),
+            "raw_payload": dict(raw_payload),
         }
         statement = (
             insert(NormalizedEventRecord)
@@ -60,6 +65,18 @@ class NormalizedEventRepository:
         except SQLAlchemyError as error:
             raise NormalizedEventStorageError(
                 f"could not store normalized event: {error}"
+            ) from error
+
+    def get_all(self) -> list[NormalizedEventRecord]:
+        try:
+            statement = select(NormalizedEventRecord).order_by(
+                NormalizedEventRecord.id
+            )
+            with self._session_factory.begin() as session:
+                return list(session.scalars(statement))
+        except SQLAlchemyError as error:
+            raise NormalizedEventStorageError(
+                f"could not load normalized events: {error}"
             ) from error
 
     @staticmethod
