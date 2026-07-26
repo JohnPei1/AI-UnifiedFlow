@@ -1,0 +1,42 @@
+{
+  "case_id": "case_5ae7b6c87cdd143983a31b7417d45d5f2283d6c6142528c7357c011059564637",
+  "status": "available",
+  "mapping": {
+    "case_id": "case_5ae7b6c87cdd143983a31b7417d45d5f2283d6c6142528c7357c011059564637",
+    "source": "openai",
+    "schema_fingerprint": "schema_1c51022b878a61cf7c3b9a7f64bce494295cbb13ac0d16526895b22da0497478",
+    "version": 1,
+    "created_by": "ai",
+    "static_fields": {
+      "category": "ai",
+      "usage_type": "tokens",
+      "unit": "tokens"
+    },
+    "fields": {
+      "resource": [
+        {
+          "operation": "copy",
+          "from": "payload.model_id"
+        }
+      ],
+      "input_units": [
+        {
+          "operation": "copy",
+          "from": "payload.token_usage.prompt"
+        }
+      ],
+      "output_units": [
+        {
+          "operation": "copy",
+          "from": "payload.token_usage.completion"
+        }
+      ],
+      "usage_start": [
+        {
+          "operation": "copy",
+          "from": "payload.request_started"
+        }
+      ]
+    }
+  }
+}
