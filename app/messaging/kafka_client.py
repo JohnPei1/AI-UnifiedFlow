@@ -14,6 +14,7 @@ from pydantic_core import PydanticSerializationError
 
 from app.config import (
     KAFKA_BOOTSTRAP_SERVERS,
+    KAFKA_CONSUMER_MAX_POLL_INTERVAL_MS,
     KAFKA_DELIVERY_TIMEOUT_MS,
     KAFKA_HEALTH_TIMEOUT_SECONDS,
 )
@@ -69,6 +70,7 @@ def create_kafka_consumer(
                 "group.id": group_id,
                 "enable.auto.commit": False,
                 "auto.offset.reset": "earliest",
+                "max.poll.interval.ms": KAFKA_CONSUMER_MAX_POLL_INTERVAL_MS,
             }
         )
         consumer.subscribe(topics)

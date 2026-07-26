@@ -189,3 +189,4 @@ def test_consumer_configuration(
     assert created["topics"] == ["raw-events"]
     assert created["config"]["enable.auto.commit"] is False
     assert created["config"]["auto.offset.reset"] == "earliest"
+    assert created["config"]["max.poll.interval.ms"] == 900000

@@ -1,6 +1,7 @@
 """Request mapping proposals through OpenRouter."""
 
 import json
+import logging
 from collections.abc import Mapping
 from pathlib import Path
 
@@ -10,6 +11,7 @@ from pydantic import JsonValue
 
 from app.ai.security import (
     AISecurityError,
+    PROTECTED_TARGETS,
     validate_mapping_structure,
     validate_ai_review,
     validate_keyword_blacklist,
@@ -20,7 +22,10 @@ from app.config import (
     AISecrets,
     NORMALIZED_EVENT_SCHEMA_PATH,
 )
+from app.normalization.fingerprint import get_schema_paths
 from app.schemas.mappings import AIProposal, AIReview
+
+logger = logging.getLogger(__name__)
 
 
 class AIClientError(RuntimeError):
@@ -46,6 +51,9 @@ class AIClient:
         self._review_model = AI_CONFIG["review_model"]
         self._temperature = AI_CONFIG["temperature"]
         self._max_attempts = AI_CONFIG["max_attempts"]
+        self._max_completion_tokens = AI_CONFIG["max_completion_tokens"]
+        self._reasoning_effort = AI_CONFIG["reasoning_effort"]
+        self._log_mapping_responses = AI_CONFIG["log_mapping_responses"]
         self._system_prompt = "\n".join(AI_CONFIG["system_prompt"])
         self._review_system_prompt = "\n".join(
             AI_CONFIG["review_system_prompt"]
@@ -73,11 +81,23 @@ class AIClient:
 
         # Prepare the request data for the AI model
         static_fields = AI_STATIC_FIELDS[source]
+        excluded_targets = PROTECTED_TARGETS | static_fields.keys()
+        available_paths = {
+            f"payload.{path}": json_type
+            for entry in get_schema_paths(payload)
+            for path, json_type in [entry.rsplit(":", 1)]
+        }
         request_data = {
             "source": source,
-            "payload": payload,
-            "trusted_static_fields": static_fields,
-            "normalized_schema": self._normalized_schema,
+            "available_paths": available_paths,
+            "allowed_targets": {
+                target: definition
+                for target, definition in self._normalized_schema[
+                    "properties"
+                ].items()
+                if target not in excluded_targets
+            },
+            "excluded_targets": sorted(excluded_targets),
             "allowed_operations": self._allowed_operations,
             "expected_output_schema": AIProposal.model_json_schema(
                 by_alias=True
@@ -93,14 +113,15 @@ class AIClient:
         last_error: AISecurityError | None = None
 
         # Attempt to generate a valid mapping proposal, retrying if validation fails
-        for _ in range(self._max_attempts):
+        for attempt in range(1, self._max_attempts + 1):
             # If the previous attempt failed, inform the AI model to correct its response
             if last_error is not None:
                 messages.append(
                     {
                         "role": "user",
                         "content": (
-                            "The previous response failed validation. "
+                            f"The previous response failed validation: "
+                            f"{last_error}. "
                             "Return a corrected mapping."
                         ),
                     }
@@ -113,6 +134,17 @@ class AIClient:
                     messages,
                     "AI mapping request failed",
                 )
+                if self._log_mapping_responses:
+                    logger.warning(
+                        "AI mapping response (attempt %s/%s): %s",
+                        attempt,
+                        self._max_attempts,
+                        content,
+                    )
+                if content is not None:
+                    messages.append(
+                        {"role": "assistant", "content": content}
+                    )
 
                 # Structural validation of the AI-generated mapping 
                 proposal = validate_mapping_structure(
@@ -135,7 +167,8 @@ class AIClient:
                 last_error = error
 
         raise AIResponseError(
-            "AI did not return a valid mapping proposal"
+            "AI did not return a valid mapping proposal: "
+            f"{last_error}"
         ) from last_error
 
     def _review_output(
@@ -175,7 +208,14 @@ class AIClient:
                 model=model,
                 messages=messages,
                 temperature=self._temperature,
+                max_completion_tokens=self._max_completion_tokens,
                 response_format={"type": "json_object"},
+                extra_body={
+                    "reasoning": {
+                        "effort": self._reasoning_effort,
+                        "exclude": True,
+                    }
+                },
             )
         except OpenAIError as error:
             raise AIClientError(error_message) from error

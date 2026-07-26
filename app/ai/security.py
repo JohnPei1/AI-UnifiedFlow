@@ -16,6 +16,18 @@ class AISecurityError(ValueError):
     pass
 
 
+def _strip_json_fence(response_text: str) -> str:
+    stripped = response_text.strip()
+    lines = stripped.splitlines()
+    if (
+        len(lines) >= 3
+        and lines[0].strip().lower() == "```json"
+        and lines[-1].strip() == "```"
+    ):
+        return "\n".join(lines[1:-1]).strip()
+    return stripped
+
+
 def validate_mapping_structure(
     response_text: str | None,
     payload: Mapping[str, JsonValue],
@@ -28,7 +40,7 @@ def validate_mapping_structure(
         raise AISecurityError("AI response has no content")
 
     try:
-        document = json.loads(response_text)
+        document = json.loads(_strip_json_fence(response_text))
         if not isinstance(document, dict):
             raise AISecurityError("AI response must be one JSON object")
         proposal = AIProposal.model_validate(document)
@@ -70,7 +82,7 @@ def validate_ai_review(response_text: str | None) -> None:
         raise AISecurityError("AI review has no content")
 
     try:
-        document = json.loads(response_text)
+        document = json.loads(_strip_json_fence(response_text))
         if not isinstance(document, dict):
             raise AISecurityError("AI review must be one JSON object")
         review = AIReview.model_validate(document)

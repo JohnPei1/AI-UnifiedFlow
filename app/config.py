@@ -29,6 +29,9 @@ KAFKA_DELIVERY_TIMEOUT_MS = USER_CONFIG["kafka"]["delivery_timeout_ms"]
 KAFKA_HEALTH_TIMEOUT_SECONDS = USER_CONFIG["kafka"][
     "health_timeout_seconds"
 ]
+KAFKA_CONSUMER_MAX_POLL_INTERVAL_MS = USER_CONFIG["kafka"][
+    "consumer_max_poll_interval_ms"
+]
 
 
 class AISecrets(BaseSettings):

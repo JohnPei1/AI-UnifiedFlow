@@ -19,55 +19,70 @@
     },
     "category": {
       "type": "string",
-      "enum": ["ai", "cloud"]
+      "enum": ["ai", "cloud"],
+      "description": "High-level usage category supplied by the application."
     },
     "service": {
-      "type": ["string", "null"]
+      "type": ["string", "null"],
+      "description": "Provider product or API, such as EC2 or OpenAI Responses. Do not use a model or resource identifier."
     },
     "resource": {
-      "type": ["string", "null"]
+      "type": ["string", "null"],
+      "description": "Infrastructure resource or AI model identifier."
     },
     "account_id": {
-      "type": ["string", "null"]
+      "type": ["string", "null"],
+      "description": "Direct provider account identifier. Omit when the payload has no account field."
     },
     "project_id": {
-      "type": ["string", "null"]
+      "type": ["string", "null"],
+      "description": "Direct project identifier. Omit when the payload has no project field."
     },
     "region": {
-      "type": ["string", "null"]
+      "type": ["string", "null"],
+      "description": "Cloud region. Omit when the payload has no region field."
     },
     "usage_type": {
-      "type": "string"
+      "type": "string",
+      "description": "Kind of usage supplied by the application."
     },
     "input_units": {
       "type": ["number", "null"],
-      "minimum": 0
+      "minimum": 0,
+      "description": "Input usage count, such as input or prompt tokens."
     },
     "output_units": {
       "type": ["number", "null"],
-      "minimum": 0
+      "minimum": 0,
+      "description": "Output usage count, such as output or completion tokens."
     },
     "quantity": {
       "type": ["number", "null"],
-      "minimum": 0
+      "minimum": 0,
+      "description": "Generic usage amount. Omit when input_units and output_units describe token usage."
     },
     "unit": {
-      "type": "string"
+      "type": "string",
+      "description": "Measurement unit supplied by the application when known."
     },
     "cost": {
       "type": ["number", "null"],
-      "minimum": 0
+      "minimum": 0,
+      "description": "Direct monetary cost. Do not derive it from a usage count."
     },
     "currency": {
-      "type": ["string", "null"]
+      "type": ["string", "null"],
+      "description": "Direct currency code. Omit when the payload has no currency field."
     },
     "usage_start": {
       "type": ["string", "null"],
-      "format": "date-time"
+      "format": "date-time",
+      "description": "Timestamp when the measured usage began."
     },
     "usage_end": {
       "type": ["string", "null"],
-      "format": "date-time"
+      "format": "date-time",
+      "description": "Distinct timestamp when usage ended. Do not copy the start time when no end time exists."
     }
   },
   "additionalProperties": false
