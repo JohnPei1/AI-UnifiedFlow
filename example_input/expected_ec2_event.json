@@ -1,0 +1,11 @@
+{
+  "source": "aws",
+  "payload": {
+    "currency": "USD",
+    "resource_id": "i-0123456789",
+    "unblended_cost": "0.42",
+    "usage_amount": "3.5",
+    "usage_started_at": "2026-07-22T14:00:00Z",
+    "usage_unit": "hours"
+  }
+}

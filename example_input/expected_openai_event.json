@@ -1,0 +1,42 @@
+{
+  "source": "openai",
+  "payload": {
+    "completed_at": 1784730660.0,
+    "created_at": 1784730658.0,
+    "error": null,
+    "id": "resp_demo_001",
+    "incomplete_details": null,
+    "input": [],
+    "instructions": null,
+    "max_output_tokens": null,
+    "metadata": {},
+    "model": "gpt-4.1-mini",
+    "object": "response",
+    "output": [],
+    "previous_response_id": null,
+    "status": "completed",
+    "store": false,
+    "temperature": 1.0,
+    "text": {
+      "format": {
+        "type": "text"
+      }
+    },
+    "tool_choice": "auto",
+    "tools": [],
+    "top_p": 1.0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1000,
+      "input_tokens_details": {
+        "cached_tokens": 100
+      },
+      "output_tokens": 200,
+      "output_tokens_details": {
+        "reasoning_tokens": 20
+      },
+      "total_tokens": 1200
+    },
+    "user": null
+  }
+}
