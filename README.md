@@ -16,9 +16,7 @@
 
 UnifiedFlow provides a unified interface for ingesting and processing enterprise cost and usage events from different systems, including AI providers, cloud platforms, SaaS products, and internal services. Each source may represent usage differently. One provider may report `input_tokens`, another may use `prompt_tokens`, while a cloud platform may report compute time, storage, or network transfer.
 
-The main goal is to prevent upstream schema changes from causing failures across the cost-processing pipeline. When a known mapping exists, the event is processed using normal application code. When the event structure changes and no valid mapping exists, the event is sent to a schema-drift topic, where AI can propose a new mapping.
-
-AI-generated mappings are validated by the application before they are saved and used. AI is only used for schema drift and is not part of the normal event-processing path.
+The main goal is to prevent upstream schema changes from causing failures across the cost-processing pipeline. When a known mapping exists, the event is processed using the deterministic mapping engine to achieve high throughput. When the event structure changes and no valid mapping exists, the event is sent to a schema-drift topic, where AI can propose a new mapping. AI-generated mappings are validated by the application before they are saved and used.
 
 ## Demo
 
